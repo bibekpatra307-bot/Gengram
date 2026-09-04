@@ -162,11 +162,49 @@ export interface ReportComplaint {
   ticketNumber: string;
 }
 
+export interface LiveStreamSession {
+  id: string;
+  host: User;
+  title: string;
+  category: string;
+  viewersCount: number;
+  likesCount: number;
+  thumbnailUrl: string;
+  streamUrl?: string;
+  startedAt: string;
+  isLive: boolean;
+  tags: string[];
+}
+
+export interface VerificationApplication {
+  id: string;
+  user: User;
+  category: 'Creator' | 'Business' | 'Journalist' | 'Official';
+  proofUrl: string;
+  submittedAt: string;
+  status: 'pending' | 'approved' | 'rejected';
+}
+
+export interface ModerationItem {
+  id: string;
+  contentType: 'post' | 'comment' | 'message' | 'account';
+  targetId: string;
+  reportedBy: User;
+  reason: 'Spam' | 'Harassment' | 'Hate Speech' | 'Copyright' | 'Abuse';
+  severity: 'low' | 'medium' | 'critical';
+  status: 'pending' | 'resolved' | 'dismissed';
+  timestamp: string;
+  contentSnippet?: string;
+}
+
 export type NavigationTab = 
   | 'feed'
   | 'explore'
   | 'reels'
   | 'messages'
+  | 'live'
+  | 'creator'
+  | 'admin'
   | 'notifications'
   | 'profile'
   | 'settings'

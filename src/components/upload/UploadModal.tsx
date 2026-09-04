@@ -21,6 +21,40 @@ export const UploadModal: React.FC = () => {
   const [tags, setTags] = useState<string[]>(['Gengram', 'Aesthetics']);
   const [customTagInput, setCustomTagInput] = useState('');
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isGeneratingCaption, setIsGeneratingCaption] = useState(false);
+
+  const aiCaptionPresets = [
+    {
+      tone: 'Futuristic',
+      caption: 'Interfacing with deep ambient light and procedural architecture. Exploring spatial aesthetics in the synthetic realm.',
+      tags: ['Gengram', 'Cyberpunk', 'GenerativeDesign', 'Matrix']
+    },
+    {
+      tone: 'Cinematic',
+      caption: 'Captured at the threshold of dawn. A quiet study in shadows, reflections, and natural atmospheric depth.',
+      tags: ['Gengram', 'Cinematic', 'VisualStorytelling', 'Photography']
+    },
+    {
+      tone: 'Minimalist',
+      caption: 'Simplicity elevated. Geometry in balance with organic rhythm.',
+      tags: ['Gengram', 'Design', 'Minimalism', 'Curated']
+    },
+    {
+      tone: 'Sound & Pulse',
+      caption: 'Sub-bass frequencies resonating in the late-night studio session. Analog warmth meets digital clarity.',
+      tags: ['Gengram', 'AudioEngine', 'Synthesizer', 'SoundDesign']
+    }
+  ];
+
+  const handleGenerateAICaption = (toneIndex: number) => {
+    setIsGeneratingCaption(true);
+    setTimeout(() => {
+      const preset = aiCaptionPresets[toneIndex % aiCaptionPresets.length];
+      setCaption(preset.caption);
+      setTags(Array.from(new Set([...tags, ...preset.tags])));
+      setIsGeneratingCaption(false);
+    }, 400);
+  };
 
   if (!isUploadModalOpen) return null;
 
@@ -280,9 +314,28 @@ export const UploadModal: React.FC = () => {
             <div className="space-y-4 text-xs">
               {/* Caption */}
               <div>
-                <label className="block text-neutral-300 font-semibold mb-1">
-                  Caption & Description
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-neutral-300 font-semibold">
+                    Caption & Description
+                  </label>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] text-cyan-400 font-bold flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" />
+                      AI Assist:
+                    </span>
+                    {aiCaptionPresets.map((preset, idx) => (
+                      <button
+                        key={preset.tone}
+                        type="button"
+                        onClick={() => handleGenerateAICaption(idx)}
+                        disabled={isGeneratingCaption}
+                        className="px-2 py-0.5 rounded-lg bg-white/[0.06] hover:bg-indigo-500/20 text-neutral-300 hover:text-indigo-300 border border-white/[0.08] text-[9px] font-semibold transition cursor-pointer"
+                      >
+                        {preset.tone}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <textarea 
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}

@@ -5,6 +5,7 @@ import {
   Lock, UserPlus, UserCheck, MessageSquare, Heart, MessageCircle, X, QrCode, Copy 
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import { User, Post } from '../../types';
 
 export const ProfileView: React.FC = () => {
@@ -21,6 +22,8 @@ export const ProfileView: React.FC = () => {
     setSelectedPostForModal,
     startDirectMessageWithUser 
   } = useApp();
+  const { firebaseUser } = useAuth();
+
 
   const [activeMediaTab, setActiveMediaTab] = useState<'posts' | 'reels' | 'saved' | 'tagged'>('posts');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);

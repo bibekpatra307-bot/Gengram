@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { 
   User, Shield, Lock, Bell, Moon, Sun, Smartphone, 
   HelpCircle, AlertTriangle, Trash2, Check, BarChart3, 
-  Eye, MessageSquare, Send, Sparkles, RefreshCw 
+  Eye, MessageSquare, Send, Sparkles, RefreshCw, LogOut, LogIn, CheckCircle2 
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import { ReportComplaint } from '../../types';
 
 export const SettingsView: React.FC = () => {
@@ -16,6 +17,14 @@ export const SettingsView: React.FC = () => {
     submitReport, 
     reports 
   } = useApp();
+  const { 
+    firebaseUser, 
+    signOut, 
+    openLoginModal, 
+    openSignUpModal, 
+    isLoading 
+  } = useAuth();
+
 
   const [activeSection, setActiveSection] = useState<
     'account' | 'privacy' | 'notifications' | 'creator' | 'theme' | 'reports'
@@ -27,6 +36,7 @@ export const SettingsView: React.FC = () => {
   const [reportDescription, setReportDescription] = useState('');
   const [reportSeverity, setReportSeverity] = useState<ReportComplaint['severity']>('medium');
   const [reportSubmittedToast, setReportSubmittedToast] = useState(false);
+  const [authToast, setAuthToast] = useState<string | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   const handleSubmitBugReport = (e: React.FormEvent) => {
@@ -61,6 +71,13 @@ export const SettingsView: React.FC = () => {
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-full bg-emerald-600 text-white text-xs font-bold shadow-2xl backdrop-blur-md animate-fade-in flex items-center gap-2">
           <Check className="w-4 h-4" />
           Feedback ticket submitted to Gengram Core Engineering.
+        </div>
+      )}
+
+      {authToast && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-full bg-neutral-900 border border-white/20 text-white text-xs font-bold shadow-2xl backdrop-blur-md animate-fade-in flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          {authToast}
         </div>
       )}
 
@@ -141,7 +158,84 @@ export const SettingsView: React.FC = () => {
             <div className="space-y-5 text-xs">
               <div>
                 <h3 className="text-sm font-bold text-white mb-1">Account & Credential Security</h3>
-                <p className="text-neutral-400">Manage identity credentials and two-factor authentication.</p>
+                <p className="text-neutral-400">Manage your active authentication session, sign in, or log out.</p>
+              </div>
+
+              {/* Active Session & Auth State Management */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#09090e]/80 border border-white/[0.08] space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
+                      <Shield className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-white text-sm">
+                          {firebaseUser ? (firebaseUser.displayName || 'Authenticated User') : 'Guest Session'}
+                        </span>
+                        {firebaseUser ? (
+                          <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Active
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-400 font-semibold">
+                            Not Signed In
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[11px] text-neutral-400">
+                        {firebaseUser ? firebaseUser.email : 'No active account signed in. Log in or create an account to sync.'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Primary Action Buttons: Log In, Create Account, Log Out */}
+                <div className="pt-3 border-t border-white/[0.06] grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  {/* Log In Button */}
+                  <button
+                    id="settings_login_btn"
+                    onClick={openLoginModal}
+                    className="py-2.5 px-3 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-white font-bold transition border border-white/[0.1] cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <LogIn className="w-4 h-4 text-cyan-400" />
+                    <span>Log In</span>
+                  </button>
+
+                  {/* Create Account Button */}
+                  <button
+                    id="settings_create_account_btn"
+                    onClick={openSignUpModal}
+                    className="py-2.5 px-3 rounded-xl nexora-gradient text-white font-bold transition shadow-sm hover:opacity-95 cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    <span>Create Account</span>
+                  </button>
+
+                  {/* Log Out Option */}
+                  <button
+                    id="settings_logout_btn"
+                    onClick={async () => {
+                      if (firebaseUser) {
+                        await signOut();
+                        setAuthToast('Successfully logged out of Gengram.');
+                      } else {
+                        setAuthToast('Guest session reset.');
+                      }
+                      setTimeout(() => setAuthToast(null), 3000);
+                    }}
+                    disabled={isLoading}
+                    className={`py-2.5 px-3 rounded-xl font-bold transition flex items-center justify-center gap-2 cursor-pointer border ${
+                      firebaseUser
+                        ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border-rose-500/20'
+                        : 'bg-white/[0.04] hover:bg-white/[0.08] text-neutral-400 hover:text-white border-white/[0.08]'
+                    }`}
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Log Out</span>
+                  </button>
+                </div>
               </div>
 
               <div className="p-4 rounded-2xl bg-[#09090e]/70 border border-white/[0.08] space-y-3">
@@ -156,9 +250,9 @@ export const SettingsView: React.FC = () => {
                 <div className="flex items-center justify-between pt-2 border-t border-white/[0.06]">
                   <div>
                     <div className="font-semibold text-white">Account Email</div>
-                    <div className="text-[11px] text-neutral-400">bibekpatra307@gmail.com</div>
+                    <div className="text-[11px] text-neutral-400">{firebaseUser?.email || currentUser.email || 'alex.solaris@gengram.io'}</div>
                   </div>
-                  <button className="text-indigo-400 hover:text-indigo-300 font-bold cursor-pointer">Edit</button>
+                  <button onClick={openLoginModal} className="text-indigo-400 hover:text-indigo-300 font-bold cursor-pointer">Edit / Switch</button>
                 </div>
               </div>
 

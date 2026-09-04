@@ -183,7 +183,50 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Actions
   const updateCurrentUser = (data: Partial<User>) => {
-    setCurrentUser(prev => ({ ...prev, ...data }));
+    setCurrentUser(prev => {
+      const updated = { ...prev, ...data };
+      return updated;
+    });
+
+    // Sync author info in posts authored by current user
+    setPosts(prev => prev.map(post => {
+      if (post.authorId === currentUser.id) {
+        return {
+          ...post,
+          author: {
+            ...post.author,
+            ...(data.displayName ? { displayName: data.displayName } : {}),
+            ...(data.username ? { username: data.username } : {}),
+            ...(data.avatar ? { avatar: data.avatar } : {}),
+          }
+        };
+      }
+      return post;
+    }));
+
+    // Sync author info in reels authored by current user
+    setReels(prev => prev.map(reel => {
+      if (reel.authorId === currentUser.id) {
+        return {
+          ...reel,
+          author: {
+            ...reel.author,
+            ...(data.displayName ? { displayName: data.displayName } : {}),
+            ...(data.username ? { username: data.username } : {}),
+            ...(data.avatar ? { avatar: data.avatar } : {}),
+          }
+        };
+      }
+      return reel;
+    }));
+
+    // If viewing profile of current user, keep it in sync
+    setViewingProfileUser(prev => {
+      if (prev && prev.id === currentUser.id) {
+        return { ...prev, ...data };
+      }
+      return prev;
+    });
   };
 
   const toggleFollowUser = (userId: string) => {
