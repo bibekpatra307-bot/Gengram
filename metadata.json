@@ -1,0 +1,7 @@
+{
+  "name": "Gengram",
+  "description": "Next-generation social networking and media platform featuring modern feed, dynamic stories, short-form reels, real-time messaging, and creator studio.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
