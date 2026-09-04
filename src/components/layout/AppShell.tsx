@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { 
   Home, Compass, Film, MessageSquare, PlusSquare, 
-  Heart, Settings, LogOut, Menu, X, Sparkles, Shield, User as UserIcon 
+  Heart, Settings, LogOut, Menu, X, Sparkles, Shield, User as UserIcon, LogIn, Database, CheckCircle2 
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import { FeedView } from '../feed/FeedView';
 import { ReelsView } from '../reels/ReelsView';
 import { ExploreView } from '../explore/ExploreView';
@@ -27,6 +28,7 @@ export const AppShell: React.FC = () => {
     notifications,
     settings 
   } = useApp();
+  const { firebaseUser, signInWithGoogle, signOut, isLoading, dbSynced } = useAuth();
 
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
@@ -157,26 +159,73 @@ export const AppShell: React.FC = () => {
           </div>
         </div>
 
-        {/* Footer & User Card */}
-        <div className="pt-4 border-t border-white/[0.08] space-y-2">
+        {/* Footer & User Card with Cloud SQL / Firebase Auth */}
+        <div className="pt-4 border-t border-white/[0.08] space-y-2.5">
+          {/* Cloud SQL Database Status Badge */}
+          <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-indigo-950/30 border border-indigo-500/20 text-[10px]">
+            <div className="flex items-center gap-1.5 text-indigo-300 font-medium">
+              <Database className="w-3 h-3 text-indigo-400" />
+              <span>PostgreSQL</span>
+            </div>
+            <div className="flex items-center gap-1 text-emerald-400 font-semibold">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Cloud SQL</span>
+            </div>
+          </div>
+
+          {/* Firebase Google Auth Button / User Profile */}
+          {firebaseUser ? (
+            <div className="flex items-center justify-between p-2 rounded-2xl bg-white/[0.04] border border-white/[0.06] transition group">
+              <div 
+                onClick={() => handleNavClick('profile')}
+                className="flex items-center gap-2.5 min-w-0 cursor-pointer"
+              >
+                <img 
+                  src={firebaseUser.photoURL || currentUser.avatar} 
+                  alt={firebaseUser.displayName || currentUser.displayName}
+                  className="w-8 h-8 rounded-full object-cover ring-1 ring-emerald-400/50"
+                />
+                <div className="min-w-0 text-left">
+                  <div className="flex items-center gap-1">
+                    <p className="text-xs font-bold text-white truncate group-hover:text-indigo-300 transition">
+                      {firebaseUser.displayName || currentUser.displayName}
+                    </p>
+                    <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
+                  </div>
+                  <p className="text-[10px] text-neutral-400 truncate">
+                    {firebaseUser.email}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={signOut}
+                title="Sign out of Google"
+                className="p-1.5 rounded-xl hover:bg-white/[0.08] text-neutral-400 hover:text-rose-400 transition cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={signInWithGoogle}
+              disabled={isLoading}
+              className="w-full py-2.5 px-3 rounded-2xl bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.1] text-white text-xs font-semibold flex items-center justify-center gap-2 transition cursor-pointer group shadow-sm"
+            >
+              <LogIn className="w-3.5 h-3.5 text-indigo-400 group-hover:scale-110 transition" />
+              <span>Sign in with Google</span>
+            </button>
+          )}
+
+          {/* Settings & Profile shortcut */}
           <div 
             onClick={() => handleNavClick('profile')}
-            className="flex items-center justify-between p-2 rounded-2xl hover:bg-white/[0.04] transition cursor-pointer group"
+            className="flex items-center justify-between px-2 py-1 rounded-xl hover:bg-white/[0.04] transition cursor-pointer group"
           >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <img 
-                src={currentUser.avatar} 
-                alt={currentUser.displayName}
-                className="w-9 h-9 rounded-full object-cover ring-1 ring-white/20"
-              />
-              <div className="min-w-0 text-left">
-                <p className="text-xs font-bold text-white truncate group-hover:text-indigo-300 transition">
-                  {currentUser.displayName}
-                </p>
-                <p className="text-[10px] text-neutral-400 truncate">
-                  @{currentUser.username}
-                </p>
-              </div>
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-2 h-2 rounded-full bg-indigo-500" />
+              <span className="text-[11px] text-neutral-400 group-hover:text-white transition">
+                Profile & Analytics
+              </span>
             </div>
             <button
               onClick={(e) => {
@@ -184,9 +233,9 @@ export const AppShell: React.FC = () => {
                 handleNavClick('settings');
               }}
               title="Settings"
-              className="p-1.5 rounded-xl hover:bg-white/[0.08] text-neutral-400 hover:text-white transition"
+              className="p-1 rounded-lg hover:bg-white/[0.08] text-neutral-400 hover:text-white transition"
             >
-              <Settings className="w-4 h-4" />
+              <Settings className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
